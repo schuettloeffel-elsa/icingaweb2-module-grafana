@@ -13,6 +13,7 @@ use Icinga\Module\Monitoring\Object\Service;
 use Icinga\Web\Url;
 use Icinga\Module\Grafana\Helpers\Util;
 use Icinga\Module\Grafana\Helpers\Timeranges;
+use Icinga\Module\Grafana\Helpers\SpecialVars;
 
 
 class Grapher extends GrapherHook
@@ -549,8 +550,18 @@ class Grapher extends GrapherHook
         $menu = "";
         if ($report === false && !$this->getView()->compact) {
             $timeranges = new Timeranges($parameters, $link);
-            $menu = $this->specialVars . " ";
-            $menu .= $timeranges->getTimerangeMenu($this->timerange, $this->timerangeto);
+            $menu = $timeranges->getTimerangeMenu($this->timerange, $this->timerangeto);
+
+            $this->specialVars = json_decode($this->specialVars, true);
+            if ($this->specialVars) {
+                $specialVars = new SpecialVars($parameters, $link);
+                $menu .= $specialVars->getSpecialVarsMenu($this->specialVars);
+                foreach($this->specialVars as $svkey => $svval) {
+                    $urlval = urldecode(Url::fromRequest()->getParam($svkey));
+                    if($urlval) $this->customVars .= "&var-" . $svkey . "=" . $urlval;
+                }
+            }
+
         } else {
             $this->title = '';
         }
