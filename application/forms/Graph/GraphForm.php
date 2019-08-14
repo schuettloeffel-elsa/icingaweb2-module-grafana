@@ -104,6 +104,17 @@ class GraphForm extends ConfigForm
         );
 
         $this->addElement(
+            'text',
+            'specialVars',
+            array(
+                'placeholder'   => '',
+                'label'         => $this->translate('Special Variables'),
+                'description'   => $this->translate(''),
+                'required'      => false
+            )
+        );
+
+        $this->addElement(
             'select',
             'timerange',
             array(
@@ -191,6 +202,7 @@ class GraphForm extends ConfigForm
             'panelId'     => $this->getElement('panelId')->getValue(),
             'orgId'     => $this->getElement('orgId')->getValue(),
             'customVars'  => $this->getElement('customVars')->getValue(),
+            'specialVars'  => $this->getElement('specialVars')->getValue(),
             'timerange'   => $this->getElement('timerange')->getValue(),
             'height'      => $this->getElement('height')->getValue(),
             'width'       => $this->getElement('width')->getValue(),
@@ -209,6 +221,9 @@ class GraphForm extends ConfigForm
         }
 	    if (empty($values['customVars'])) {
             $values['customVars'] = null;
+        }
+        if (empty($values['specialVars'])) {
+            $values['specialVars'] = null;
         }
         if (empty($values['height'])) {
             $values['height'] = null;
