@@ -194,7 +194,6 @@ class Grapher extends GrapherHook
         $this->panelId = $this->getGraphConfigOption($serviceName, 'panelId', $this->defaultDashboardPanelId);
         $this->orgId = $this->getGraphConfigOption($serviceName, 'orgId', $this->defaultOrgId);
         $this->customVars = $this->getGraphConfigOption($serviceName, 'customVars', '');
-        $this->specialVars = $this->getGraphConfigOption($serviceName, 'specialVars', '');
 
         if(Url::fromRequest()->hasParam('tr-from') && Url::fromRequest()->hasParam('tr-to')) {
             $this->timerange = urldecode(Url::fromRequest()->getParam('tr-from'));
@@ -547,21 +546,26 @@ class Grapher extends GrapherHook
         $return_html = "";
 
         // Hide menu if in reporting or compact mode
-        $menu = "";
+        $menu = ""; $menu_sv = "";
         if ($report === false && !$this->getView()->compact) {
-            $timeranges = new Timeranges($parameters, $link);
-            $menu = $timeranges->getTimerangeMenu($this->timerange, $this->timerangeto);
 
-            $this->specialVars = json_decode($this->specialVars, true);
+            $this->specialVars = json_decode($this->getGraphConfigOption($serviceName, 'specialVars', ''), true);
             if ($this->specialVars) {
+                if(Url::fromRequest()->hasParam('timerange')) $parameters["timerange"] = urldecode(Url::fromRequest()->getParam('timerange'));
                 $specialVars = new SpecialVars($parameters, $link);
-                $menu .= $specialVars->getSpecialVarsMenu($this->specialVars);
+                $menu_sv = $specialVars->getSpecialVarsMenu($this->specialVars);
                 foreach($this->specialVars as $svkey => $svval) {
                     $urlval = urldecode(Url::fromRequest()->getParam($svkey));
-                    if($urlval) $this->customVars .= "&var-" . $svkey . "=" . $urlval;
+                    if($urlval) {
+                        $this->customVars .= "&var-" . $svkey . "=" . $urlval;
+                        $parameters[$svkey] = $urlval;
+                    }
                 }
             }
 
+            $timeranges = new Timeranges($parameters, $link);
+            $menu = $timeranges->getTimerangeMenu($this->timerange, $this->timerangeto);
+            $menu .= $menu_sv;
         } else {
             $this->title = '';
         }
