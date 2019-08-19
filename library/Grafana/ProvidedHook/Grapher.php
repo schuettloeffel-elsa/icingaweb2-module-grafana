@@ -551,8 +551,11 @@ class Grapher extends GrapherHook
 
             $this->specialVars = json_decode($this->getGraphConfigOption($serviceName, 'specialVars', ''), true);
             if ($this->specialVars) {
-                if(Url::fromRequest()->hasParam('timerange')) $parameters["timerange"] = urldecode(Url::fromRequest()->getParam('timerange'));
-                $specialVars = new SpecialVars($parameters, $link);
+                $parameters_sv = $parameters;
+                if(Url::fromRequest()->hasParam('timerange')) $parameters_sv["timerange"] = urldecode(Url::fromRequest()->getParam('timerange'));
+                if(Url::fromRequest()->hasParam('tr-from')) $parameters_sv["tr-from"] = urldecode(Url::fromRequest()->getParam('tr-from'));
+                if(Url::fromRequest()->hasParam('tr-from')) $parameters_sv["tr-to"] = urldecode(Url::fromRequest()->getParam('tr-to'));
+                $specialVars = new SpecialVars($parameters_sv, $link);
                 $menu_sv = $specialVars->getSpecialVarsMenu($this->specialVars);
                 foreach($this->specialVars as $svkey => $svval) {
                     $urlval = urldecode(Url::fromRequest()->getParam($svkey));
