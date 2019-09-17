@@ -240,9 +240,9 @@ class Grapher extends GrapherHook
                     $this->grafanaHost,
                     $this->dashboarduid,
                     $this->dashboard,
-                    urlencode($hostName),
+                    rawurlencode($hostName),
                     rawurlencode($serviceName),
-                    $this->object->check_command,
+                    rawurlencode($this->object->check_command),
                     $this->customVars,
                     $this->panelId,
                     $this->orgId,
@@ -260,9 +260,9 @@ class Grapher extends GrapherHook
                     $this->grafanaHost,
                     $this->dashboardstore,
                     $this->dashboard,
-                    urlencode($hostName),
+                    rawurlencode($hostName),
                     rawurlencode($serviceName),
-                    $this->object->check_command,
+                    rawurlencode($this->object->check_command),
                     $this->customVars,
                     $this->panelId,
                     $this->orgId,
@@ -334,7 +334,7 @@ class Grapher extends GrapherHook
         } elseif ($this->accessMode == "indirectproxy") {
             if ($this->object instanceof Service) {
                 $this->pngUrl = Url::frompath('grafana/img', array(
-                    'host' => urlencode($hostName),
+                    'host' => rawurlencode($hostName),
                     'service' => rawurlencode($serviceName),
                     'panelid' => $this->panelId,
                     'timerange' => urlencode($this->timerange),
@@ -343,7 +343,7 @@ class Grapher extends GrapherHook
                 ));
             } else {
                 $this->pngUrl = Url::frompath('grafana/img', array(
-                    'host' => urlencode($hostName),
+                    'host' => rawurlencode($hostName),
                     'panelid' => $this->panelId,
                     'timerange' => urlencode($this->timerange),
                     'timerangeto' => urlencode($this->timerangeto),
@@ -372,9 +372,9 @@ class Grapher extends GrapherHook
                     $this->grafanaHost,
                     $this->dashboarduid,
                     $this->dashboard,
-                    urlencode($hostName),
+                    rawurlencode($hostName),
                     rawurlencode($serviceName),
-                    $this->object->check_command,
+                    rawurlencode($this->object->check_command),
                     $this->customVars,
                     $this->panelId,
                     $this->orgId,
@@ -397,9 +397,9 @@ class Grapher extends GrapherHook
                     $this->grafanaHost,
                     $this->dashboardstore,
                     $this->dashboard,
-                    urlencode($hostName),
+                    rawurlencode($hostName),
                     rawurlencode($serviceName),
-                    $this->object->check_command,
+                    rawurlencode($this->object->check_command),
                     $this->customVars,
                     $this->panelId,
                     $this->orgId,
@@ -423,9 +423,9 @@ class Grapher extends GrapherHook
                     $this->grafanaHost,
                     $this->dashboarduid,
                     $this->dashboard,
-                    urlencode($hostName),
+                    rawurlencode($hostName),
                     rawurlencode($serviceName),
-                    $this->object->check_command,
+                    rawurlencode($this->object->check_command),
                     $this->customVars,
                     $this->panelId,
                     $this->orgId,
@@ -443,9 +443,9 @@ class Grapher extends GrapherHook
                     $this->grafanaHost,
                     $this->dashboardstore,
                     $this->dashboard,
-                    urlencode($hostName),
+                    rawurlencode($hostName),
                     rawurlencode($serviceName),
-                    $this->object->check_command,
+                    rawurlencode($this->object->check_command),
                     $this->customVars,
                     $this->panelId,
                     $this->orgId,
@@ -516,8 +516,8 @@ class Grapher extends GrapherHook
 
         // replace special chars for graphite
         if ($this->dataSource == "graphite" && $this->accessMode != "indirectproxy") {
-            $serviceName = preg_replace('/[^a-zA-Z0-9\*\-:]/', '_', $serviceName);
-            $hostName = preg_replace('/[^a-zA-Z0-9\*\-:]/', '_', $hostName);
+            $serviceName = Util::graphiteReplace($serviceName);
+            $hostName = Util::graphiteReplace($hostName);
         }
 
         if (!empty($this->customVars)) {
@@ -531,14 +531,15 @@ class Grapher extends GrapherHook
 
             // urlencodee values
             $customVars = "";
-            foreach (explode('&', $this->customVars) as $param) {
+            foreach (preg_split('/\&/', $this->customVars, -1, PREG_SPLIT_NO_EMPTY) as $param) {
                 $arr = explode("=", $param);
-                $k = $arr[0];
-                $customVars = $customVars . '&' . $k;
-                if (count($arr) > 1) {
-                    $v = $arr[1];
-                    $customVars = $customVars . "=" . $v;
+                if (preg_match('/^\$.*\$$/', $arr[1])) {
+                    $arr[1] = '';
                 }
+                if ($this->dataSource == "graphite") {
+                    $arr[1] = Util::graphiteReplace($arr[1]);
+                }
+                $customVars .= '&' . $arr[0] . '=' . rawurlencode($arr[1]);
             }
             $this->customVars = $customVars;
         }
@@ -595,12 +596,10 @@ class Grapher extends GrapherHook
                         $this->publicHost,
                         $this->dashboarduid,
                         $this->dashboard,
-                        ($this->dataSource == "graphite") ? rawurlencode(preg_replace('/[^a-zA-Z0-9\*\-:]/', '_',
-                            $hostName)) : rawurlencode($hostName),
-                        ($this->dataSource == "graphite") ? rawurlencode(preg_replace('/[^a-zA-Z0-9\*\-:]/', '_', $serviceName)) : rawurlencode($serviceName),
-                        $this->object->check_command,
-                        ($this->dataSource == "graphite") ? rawurlencode(preg_replace('/[^a-zA-Z0-9\*\-:]/', '_',
-                            $this->customVars)) : rawurlencode($this->customVars),
+                        rawurlencode($hostName),
+                        rawurlencode($serviceName),
+                        rawurlencode($this->object->check_command),
+                        $this->customVars,
                         urlencode($this->timerange),
                         urlencode($this->timerangeto),
                         $this->orgId,
@@ -616,12 +615,10 @@ class Grapher extends GrapherHook
                         $this->publicHost,
                         $this->dashboardstore,
                         $this->dashboard,
-                        ($this->dataSource == "graphite") ? rawurlencode(preg_replace('/[^a-zA-Z0-9\*\-:]/', '_',
-                            $hostName)) : rawurlencode($hostName),
-                        ($this->dataSource == "graphite") ? rawurlencode(preg_replace('/[^a-zA-Z0-9\*\-:]/', '_', $serviceName)) : rawurlencode($serviceName),
-                        $this->object->check_command,
-                        ($this->dataSource == "graphite") ? rawurlencode(preg_replace('/[^a-zA-Z0-9\*\-:]/', '_',
-                            $this->customVars)) : rawurlencode($this->customVars),
+                        rawurlencode($hostName),
+                        rawurlencode($serviceName),
+                        rawurlencode($this->object->check_command),
+                        $this->customVars,
                         urlencode($this->timerange),
                         urlencode($this->timerangeto),
                         $this->orgId,

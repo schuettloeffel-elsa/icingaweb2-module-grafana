@@ -168,19 +168,31 @@ class ImgController extends MonitoringAwareController
 
         if (!empty($this->customVars)) {
             // replace template to customVars from Icinga2
-            $myCustomVars = $this->object->fetchCustomvars()->customvars;
-            foreach ($myCustomVars as $k => $v) {
+            $customVars = $this->object->fetchCustomvars()->customvars;
+            foreach ($customVars as $k => $v) {
                 $search[] = "\$$k\$";
                 $replace[] = is_string($v) ? $v : null;
                 $this->customVars = str_replace($search, $replace, $this->customVars);
             }
-            $this->customVars = explode('=', $this->customVars);
-            $this->customVars = $this->customVars[0] . '=' . rawurlencode($this->customVars[1]);
+
+            // urlencodee values
+            $customVars = "";
+            foreach (preg_split('/\&/', $this->customVars, -1, PREG_SPLIT_NO_EMPTY) as $param) {
+                $arr = explode("=", $param);
+                if (preg_match('/^\$.*\$$/', $arr[1])) {
+                    $arr[1] = '';
+                }
+                if ($this->dataSource == "graphite") {
+                    $arr[1] = Util::graphiteReplace($arr[1]);
+                }
+                $customVars .= '&' . $arr[0] . '=' . rawurlencode($arr[1]);
+            }
+            $this->customVars = $customVars;
         }
         // replace special chars for graphite
         if ($this->dataSource == "graphite") {
-            $serviceName = preg_replace('/[^a-zA-Z0-9\*\-:]/', '_', $serviceName);
-            $hostName = preg_replace('/[^a-zA-Z0-9\*\-:]/', '_', $hostName);
+            $serviceName = Util::graphiteReplace($serviceName);
+            $hostName = Util::graphiteReplace($hostName);
         }
 
         $imageHtml = "";
@@ -197,6 +209,9 @@ class ImgController extends MonitoringAwareController
         header("Content-type: image/png");
         if (! $res)
         {
+            // set expire to now and max age to 1 minute
+            header("Expires: ".gmdate("D, d M Y H:i:s", time())." GMT");
+            header('Cache-Control: max-age='. 120);
             $string = wordwrap($this->translate('Error'). ': ' . $imageHtml,40,"\n");
             $lines = explode("\n", $string);
             $im = @imagecreate ($this->width, $this->height);
@@ -291,9 +306,9 @@ class ImgController extends MonitoringAwareController
                 $this->grafanaHost,
                 $this->dashboarduid,
                 $this->dashboard,
-                urlencode($hostName),
+                rawurlencode($hostName),
                 rawurlencode($serviceName),
-                $this->object->check_command,
+                rawurlencode($this->object->check_command),
                 $this->customVars,
                 $this->panelId,
                 $this->orgId,
@@ -311,9 +326,9 @@ class ImgController extends MonitoringAwareController
                 $this->grafanaHost,
                 $this->dashboardstore,
                 $this->dashboard,
-                urlencode($hostName),
+                rawurlencode($hostName),
                 rawurlencode($serviceName),
-                $this->object->check_command,
+                rawurlencode($this->object->check_command),
                 $this->customVars,
                 $this->panelId,
                 $this->orgId,
