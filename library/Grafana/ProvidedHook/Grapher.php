@@ -194,6 +194,7 @@ class Grapher extends GrapherHook
         $this->panelId = $this->getGraphConfigOption($serviceName, 'panelId', $this->defaultDashboardPanelId);
         $this->orgId = $this->getGraphConfigOption($serviceName, 'orgId', $this->defaultOrgId);
         $this->customVars = $this->getGraphConfigOption($serviceName, 'customVars', '');
+        $this->specialVars = json_decode($this->getGraphConfigOption($serviceName, 'specialVars', ''), true);
 
         if(Url::fromRequest()->hasParam('tr-from') && Url::fromRequest()->hasParam('tr-to')) {
             $this->timerange = urldecode(Url::fromRequest()->getParam('tr-from'));
@@ -550,7 +551,6 @@ class Grapher extends GrapherHook
         $menu = ""; $menu_sv = "";
         if ($report === false && !$this->getView()->compact) {
 
-            $this->specialVars = json_decode($this->getGraphConfigOption($serviceName, 'specialVars', ''), true);
             if ($this->specialVars) {
                 $parameters_sv = $parameters;
                 if(Url::fromRequest()->hasParam('timerange')) $parameters_sv["timerange"] = urldecode(Url::fromRequest()->getParam('timerange'));
