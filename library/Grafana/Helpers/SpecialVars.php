@@ -44,16 +44,17 @@ class SpecialVars
 
     private function buildSpecialVarsMenu($vars = array())
     {
-        $menu = "";
+        $menu = '<table class="grafana-table"><tr>';
         foreach ($vars as $key => $mainValue) {
-            $menu .= '<ul class="grafana-menu-navigation"><a class="main" href="#">' . $key . '</a>';
+            $menu .= '<td><ul class="grafana-menu-navigation"><a class="main" href="#">' . ucfirst($key) . '</a>';
             $counter = 1;
             foreach ($mainValue as $subkey => $value) {
                 $menu .= '<li class="grafana-menu-n' . $counter . '">' . $this->getSpecialVarsLink($key, $value) . '</li>';
                 $counter++;
             }
-            $menu .= '</ul>';
+            $menu .= '</ul></td>';
         }
+        $menu .= '</tr></table>';
 
         return $menu;
     }
