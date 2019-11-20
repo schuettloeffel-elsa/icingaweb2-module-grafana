@@ -113,6 +113,14 @@ class GeneralConfigForm extends ConfigForm
         );
         $this->addElement(
             'text',
+            'grafana_defaultspecialvar',
+            array(
+                'label' => $this->translate('Default specialVar'),
+                'description' => $this->translate('Default specialVar'),
+            )
+        );
+        $this->addElement(
+            'text',
             'grafana_defaultdashboard',
             array(
                 'value' => 'icinga2-default',

@@ -194,7 +194,9 @@ class Grapher extends GrapherHook
         $this->panelId = $this->getGraphConfigOption($serviceName, 'panelId', $this->defaultDashboardPanelId);
         $this->orgId = $this->getGraphConfigOption($serviceName, 'orgId', $this->defaultOrgId);
         $this->customVars = $this->getGraphConfigOption($serviceName, 'customVars', '');
-        $this->specialVars = json_decode($this->getGraphConfigOption($serviceName, 'specialVars', ''), true);
+
+        $this->defaultspecialVars = $this->config->get('defaultspecialvar', '');
+        $this->specialVars = json_decode($this->getGraphConfigOption($serviceName, 'specialVars', $this->defaultspecialVars), true);
 
         if(Url::fromRequest()->hasParam('tr-from') && Url::fromRequest()->hasParam('tr-to')) {
             $this->timerange = urldecode(Url::fromRequest()->getParam('tr-from'));
