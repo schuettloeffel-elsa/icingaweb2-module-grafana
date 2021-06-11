@@ -14,7 +14,6 @@ class GraphController extends Controller
     public function init()
     {
 	$this->assertPermission('grafana/graphconfig');
-	$this->view->grafanaVersion = $this->Config()->get('grafana', 'version');
 	}
 
     /**
@@ -22,11 +21,15 @@ class GraphController extends Controller
      */
     public function indexAction()
     {
+/*
         $this->getTabs()->add('graphs', array(
             'active'    => true,
             'label'     => $this->translate('Graphs'),
             'url'       => $this->getRequest()->getUrl()
         ));
+        $this->view->graphs = $this->Config('graphs');
+*/
+        $this->view->tabs = $this->Module()->getConfigTabs()->activate('graph');
         $this->view->graphs = $this->Config('graphs');
     }
     /**
@@ -43,7 +46,6 @@ class GraphController extends Controller
         $graphs
             ->setIniConfig($this->Config('graphs'))
             ->setRedirectUrl('grafana/graph')
-            ->setGrafanaVersion($this->view->grafanaVersion)
             ->handleRequest();
         $this->view->form = $graphs;
     }
@@ -97,14 +99,12 @@ class GraphController extends Controller
         try {
             $graphs
                 ->setIniConfig($this->Config('graphs'))
-                ->setGrafanaVersion($this->view->grafanaVersion)
                 ->bind($graph);
         } catch (NotFoundError $e) {
             $this->httpNotFound($e->getMessage());
         }
         $graphs
             ->setRedirectUrl('grafana/graph')
-            ->setGrafanaVersion($this->view->grafanaVersion)
             ->handleRequest();
         $this->view->form = $graphs;
     }
